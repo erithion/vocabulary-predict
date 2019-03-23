@@ -13,6 +13,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.base import clone
 
+from gensim.models.keyedvectors import KeyedVectors
+
 init()
 
 # taken from sklearn example
@@ -175,3 +177,6 @@ plot_learning_curve(pipe2, "Learning Curve", X_train, y_train, (0.7, 1.01), cv=c
 plt.show()    
     
 print ("In case the scores are bad consult https://scikit-learn.org/stable/tutorial/machine_learning_map/index.html")
+
+
+word_vectors = KeyedVectors.load_word2vec_format('../../Git/llearn/data/58/model.txt', binary=False)
