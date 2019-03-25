@@ -102,7 +102,7 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
 # target - array of zeros and ones
 # threshold - less or greater than threshold will print a warning
 def skewedCheck (target, threshold=0.25, do_exit=False):
-    i = sum(target) / target.size
+    i = sum(target) / len(target)
     if threshold <= i <= (1 - threshold):
         print(Fore.GREEN + '%2.2f%% of positive targets' % (i*100))
         print(Style.RESET_ALL)
@@ -112,18 +112,19 @@ def skewedCheck (target, threshold=0.25, do_exit=False):
         if do_exit:
             sys.exit('You asked not stop if the data is skewed')
 
-def evaluateOnData(X, y):
+def evaluateOnData(X, y, kernel=['rbf', 'linear'], gamma=[1000, 100, 10, 1, 0.1, 0.01, 0.001]):
     skewedCheck(y)
 
     # no shuffling as we expect articles for word2vec
     X_train, X_eval, y_train, y_eval = train_test_split(X, y, test_size=0.2,random_state=109) # 80% training
 
     pipe = Pipeline(steps=[('scaler', StandardScaler()), ('estimator', SVC())]) # estimator is just to create a key
+
     tuned_param = [{
                 'estimator':[SVC()],
                 'estimator__C': [0.01, 0.1, 1, 10, 100, 1000],
-                'estimator__gamma': [0.001, 0.0001],
-                'estimator__kernel': ['rbf', 'linear']
+                'estimator__gamma': gamma,
+                'estimator__kernel': kernel
                 },
                 {
                 'estimator':[LogisticRegression()],
@@ -132,7 +133,7 @@ def evaluateOnData(X, y):
                 'estimator__max_iter' : [15000] # seems there's no way to vary the gradient descent step, have to use many iterations to get the loss function gradient converged
                 },
               ]
-
+              
     score = 'f1_micro'
     print("# Tuning hyper-parameters for %s" % score)
     print()

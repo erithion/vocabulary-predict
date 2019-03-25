@@ -10,6 +10,8 @@ import eval_bin_classifier
 import random
 import ast
 from itertools import islice
+from numpy import zeros
+from eval_bin_classifier import evaluateOnData
 
 def obtainModel(path):
 #    file = basename(normpath(path))
@@ -58,9 +60,16 @@ def preprocessCorpus(path):
             cf.write(str(line_counter))
     return file, line_counter
 
-#model = obtainModel('../../llearn/data/104/model.txt')
+# Returns the list of lines picked consequently with up to line_count elements if available starting from random line
+def sampleSequentialLines(file_path, total_lines, lines_to_read=10):
+    with open(file_path, encoding="utf-8") as f:
+        # waterman's reservoir takes much longer compared to simple line counting
+        start = random.randrange(total_lines)
+        res = [s.strip() for n, s in islice(enumerate(f), start, start + lines_to_read)]
+        return res
 
-#corpus_path, corpus_lines = preprocessCorpus('../../llearn/data/norsk_aviskorpus/1/19981013-20010307/test')
+        
+model = obtainModel('../../llearn/data/104/model.txt')
 corpus_path, corpus_lines = preprocessCorpus('../../llearn/data/norsk_aviskorpus/1/19981013-20010307/alle-981013-010307.utf8')
 
 #if 'lære' in model:
@@ -70,20 +79,13 @@ corpus_path, corpus_lines = preprocessCorpus('../../llearn/data/norsk_aviskorpus
 
 # Some predefined functions that show content related information for given words
 #print(model.most_similar(positive=['kvinne', 'konge'], negative=['mann']))
+        
+article_words_count = 5000
+article = sampleSequentialLines(corpus_path, corpus_lines, lines_to_read=article_words_count)
+chosen_words = random.sample(article, int(article_words_count * 0.1))
+y = [1 if el in chosen_words else 0 for el in article]
+non_existent_word = zeros(model.vectors[0].shape)
+X = [model[w] if w in model else non_existent_word for w in article]
 
-# Returns the list of lines picked consequently with up to line_count elements if available starting from random line
-def sampleSequentialLines(file_path, total_lines, lines_to_read=10):
-    with open(file_path, encoding="utf-8") as f:
-        # waterman's reservoir takes much longer compared to simple line counting
-        start = random.randrange(total_lines)
-        res = [s.strip() for n, s in islice(enumerate(f), start, start + lines_to_read)]
-        return res
-    
-print(sampleSequentialLines(corpus_path, corpus_lines))
+evaluateOnData(X, y, kernel=['rbf'], gamma=[100000])
 
-# generate 1M text interval
-#     random-sample words from it
-#     create y=[0|1, 0|1, ...] with words+sample words 
-#     replace every word with embedded vectors
-# run eval_bin_classifier
-# print words
