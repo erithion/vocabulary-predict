@@ -6,6 +6,10 @@ import re
 import string
 from progress.bar import ChargingBar
 import time
+import eval_bin_classifier
+import random
+import ast
+from itertools import islice
 
 def obtainModel(path):
 #    file = basename(normpath(path))
@@ -17,11 +21,13 @@ def obtainModel(path):
         model.save(file)
         return model
 
-# returns path to a new file with the preprocessed corpus text within
+# returns path to a new file with the preprocessed corpus text within and its line count 
 def preprocessCorpus(path):
     file = path + '.prep' # saving in the same folder
     if exists(file):
-        return file
+        with open(file + '.cnt', 'r') as cf:
+            s = cf.readline().strip()
+            return file, int(s)
         
     # returns a new preprocessed string and length of the original string
     def byLines(path):
@@ -34,6 +40,7 @@ def preprocessCorpus(path):
                 yield prep.strip().lower(), len(line.encode("utf-8")) # size of unicode string in bytes
                 
     with open(file, 'w', encoding="utf-8") as f:
+        line_counter = 0
         byteCounter = 0
         mbSize = 1024**2
         size = int(stat(path).st_size/mbSize)
@@ -41,20 +48,42 @@ def preprocessCorpus(path):
         for lineStr, lengthStr in byLines(path):
             if lineStr:
                 f.write(lineStr + '\n')
+                line_counter += 1
             byteCounter += lengthStr
             if int(byteCounter / mbSize) > 0:
                 bar.next()  # progress is updated by megabytes
                 byteCounter %= mbSize
-        bar.finish()                
-    return file
+        bar.finish()
+        with open(file + '.cnt', 'w') as cf:
+            cf.write(str(line_counter))
+    return file, line_counter
 
-model = obtainModel('../../llearn/data/104/model.txt')
-corpusFile = preprocessCorpus('../../llearn/data/norsk_aviskorpus/1/19981013-20010307/alle-981013-010307.utf8')
+#model = obtainModel('../../llearn/data/104/model.txt')
 
-if 'lære' in model:
-    print(model['lære'].shape)
-else:
-    print('{0} is an out of dictionary word'.format('lære'))
+#corpus_path, corpus_lines = preprocessCorpus('../../llearn/data/norsk_aviskorpus/1/19981013-20010307/test')
+corpus_path, corpus_lines = preprocessCorpus('../../llearn/data/norsk_aviskorpus/1/19981013-20010307/alle-981013-010307.utf8')
+
+#if 'lære' in model:
+#    print(model['lære'].shape)
+#else:
+#    print('{0} is an out of dictionary word'.format('lære'))
 
 # Some predefined functions that show content related information for given words
-print(model.most_similar(positive=['kvinne', 'konge'], negative=['mann']))
+#print(model.most_similar(positive=['kvinne', 'konge'], negative=['mann']))
+
+# Returns the list of lines picked consequently with up to line_count elements if available starting from random line
+def sampleSequentialLines(file_path, total_lines, lines_to_read=10):
+    with open(file_path, encoding="utf-8") as f:
+        # waterman's reservoir takes much longer compared to simple line counting
+        start = random.randrange(total_lines)
+        res = [s.strip() for n, s in islice(enumerate(f), start, start + lines_to_read)]
+        return res
+    
+print(sampleSequentialLines(corpus_path, corpus_lines))
+
+# generate 1M text interval
+#     random-sample words from it
+#     create y=[0|1, 0|1, ...] with words+sample words 
+#     replace every word with embedded vectors
+# run eval_bin_classifier
+# print words

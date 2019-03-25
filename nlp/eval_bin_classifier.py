@@ -1,6 +1,5 @@
 import tensorflow as tf
 import sys
-from sklearn import datasets
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 #from sklearn import metrics
@@ -113,21 +112,14 @@ def skewedCheck (target, threshold=0.25, do_exit=False):
         if do_exit:
             sys.exit('You asked not stop if the data is skewed')
 
-cancer = datasets.load_breast_cancer()
+def evaluateOnData(X, y):
+    skewedCheck(y)
 
-#   print the names of the 13 features
-# print("Features: ", cancer.feature_names) # 
-#   print the label type of cancer('malignant' 'benign')
-# print("Labels: ", cancer.target_names)
+    # no shuffling as we expect articles for word2vec
+    X_train, X_eval, y_train, y_eval = train_test_split(X, y, test_size=0.2,random_state=109) # 80% training
 
-
-skewedCheck(cancer.target)
-
-# no shuffling as we expect articles for word2vec
-X_train, X_eval, y_train, y_eval = train_test_split(cancer.data, cancer.target, test_size=0.2,random_state=109) # 80% training
-
-pipe = Pipeline(steps=[('scaler', StandardScaler()), ('estimator', SVC())]) # estimator is just to create a key
-tuned_param = [{
+    pipe = Pipeline(steps=[('scaler', StandardScaler()), ('estimator', SVC())]) # estimator is just to create a key
+    tuned_param = [{
                 'estimator':[SVC()],
                 'estimator__C': [0.01, 0.1, 1, 10, 100, 1000],
                 'estimator__gamma': [0.001, 0.0001],
@@ -141,42 +133,39 @@ tuned_param = [{
                 },
               ]
 
-score = 'f1_micro'
-print("# Tuning hyper-parameters for %s" % score)
-print()
+    score = 'f1_micro'
+    print("# Tuning hyper-parameters for %s" % score)
+    print()
 
-clf = GridSearchCV(pipe, tuned_param, n_jobs=-1, cv=5, scoring=score, iid=False)
-clf.fit(X_train, y_train)
+    clf = GridSearchCV(pipe, tuned_param, n_jobs=-1, cv=5, scoring=score, iid=False)
+    clf.fit(X_train, y_train)
 
-print(Fore.YELLOW + "Best score and its hyper-parameters")
-print("%0.3f (+/-%0.03f) for %r"
+    print(Fore.YELLOW + "Best score and its hyper-parameters")
+    print("%0.3f (+/-%0.03f) for %r"
             % ( clf.cv_results_['mean_test_score'][clf.best_index_]
               , clf.cv_results_['std_test_score'][clf.best_index_] * 2
               , clf.cv_results_['params'][clf.best_index_]))
-print(Style.RESET_ALL)
+    print(Style.RESET_ALL)
 
-if False: # for future 'verbose' cmdline param
-    print("Score details (dev-set)")
-    means = clf.cv_results_['mean_test_score']
-    stds = clf.cv_results_['std_test_score']
-    for mean, std, params in zip(means, stds, clf.cv_results_['params']):
-        print("%0.3f (+/-%0.03f) for %r"
-            % (mean, std * 2, params))
+    if False: # for future 'verbose' cmdline param
+        print("Score details (dev-set)")
+        means = clf.cv_results_['mean_test_score']
+        stds = clf.cv_results_['std_test_score']
+        for mean, std, params in zip(means, stds, clf.cv_results_['params']):
+            print("%0.3f (+/-%0.03f) for %r"
+                % (mean, std * 2, params))
+        print()
+    
+    print("Evaluaion (test-set)")
+    y_true, y_pred = y_eval, clf.predict(X_eval)
+    print(classification_report(y_true, y_pred))
     print()
+
+    # Learning curve plot
+    clf2 = clone(clf.best_estimator_.named_steps['estimator']) # the result is yet unfitted estimator with the same initial params
+    pipe2 = make_pipeline(StandardScaler(), clf2)
+    cv = ShuffleSplit(n_splits=10, test_size=0.2, random_state=0)
+    plot_learning_curve(pipe2, "Learning Curve", X_train, y_train, (0.7, 1.01), cv=cv, n_jobs=-1)
+    plt.show()    
     
-print("Evaluaion (test-set)")
-y_true, y_pred = y_eval, clf.predict(X_eval)
-print(classification_report(y_true, y_pred))
-print()
-
-# Learning curve plot
-clf2 = clone(clf.best_estimator_.named_steps['estimator']) # the result is yet unfitted estimator with the same initial params
-pipe2 = make_pipeline(StandardScaler(), clf2)
-cv = ShuffleSplit(n_splits=10, test_size=0.2, random_state=0)
-plot_learning_curve(pipe2, "Learning Curve", X_train, y_train, (0.7, 1.01), cv=cv, n_jobs=-1)
-plt.show()    
-    
-print ("In case the scores are bad consult https://scikit-learn.org/stable/tutorial/machine_learning_map/index.html")
-
-
-word_vectors = KeyedVectors.load_word2vec_format('../../Git/llearn/data/58/model.txt', binary=False)
+    print ("In case the scores are bad consult https://scikit-learn.org/stable/tutorial/machine_learning_map/index.html")
