@@ -12,6 +12,10 @@ import ast
 from itertools import islice
 from numpy import zeros
 from eval_bin_classifier import evaluateOnData
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline, Pipeline
+from sklearn.model_selection import train_test_split
+from stop_words import get_stop_words
 
 def obtainModel(path):
 #    file = basename(normpath(path))
@@ -72,20 +76,34 @@ def sampleSequentialLines(file_path, total_lines, lines_to_read=10):
 model = obtainModel('../../llearn/data/104/model.txt')
 corpus_path, corpus_lines = preprocessCorpus('../../llearn/data/norsk_aviskorpus/1/19981013-20010307/alle-981013-010307.utf8')
 
-#if 'lære' in model:
-#    print(model['lære'].shape)
-#else:
-#    print('{0} is an out of dictionary word'.format('lære'))
-
 # Some predefined functions that show content related information for given words
 #print(model.most_similar(positive=['kvinne', 'konge'], negative=['mann']))
         
-article_words_count = 5000
+article_words_count = 7500#5000
 article = sampleSequentialLines(corpus_path, corpus_lines, lines_to_read=article_words_count)
-chosen_words = random.sample(article, int(article_words_count * 0.1))
-y = [1 if el in chosen_words else 0 for el in article]
-non_existent_word = zeros(model.vectors[0].shape)
-X = [model[w] if w in model else non_existent_word for w in article]
+# Filtering out the stop-words because they are rarely chosen by a user, yet once having been chosen for the tests they give too biased statistics
+for_sampling = [x for x in article if x not in get_stop_words('norwegian')]
+chosen_words = random.sample(for_sampling, int(article_words_count * 0.1))
+# Removing words not in model since they don't add any useful information to the nn
+X = [model[w] for w in article if w in model]
+y = [1 if el in chosen_words else 0 for el in article if el in model]
 
-evaluateOnData(X, y, kernel=['rbf'], gamma=[100000])
+print ("Initial article size %i; Final article size %i" % (article_words_count, len(X)))
 
+clf = evaluateOnData(X, y, kernel=['rbf'], gamma=[1e7, 1e6, 1e5, 1e4, 1e3, 1e2, 10, 1, 0.1, 1e-2])
+
+X_train, X_eval, y_train, y_eval = train_test_split(X, y, test_size=0.2,random_state=109) # 80% training
+p = make_pipeline(StandardScaler(), clf).fit(X_train, y_train)
+y_pred = p.predict(X_eval)
+predicted_new = [model.most_similar(positive=[X_eval[i]])[0] for i, _ in enumerate(y_pred) if y_pred[i]==1 and y_eval[i]==0]
+predicted_err = [model.most_similar(positive=[X_eval[i]])[0] for i, _ in enumerate(y_pred) if y_pred[i]==0 and y_eval[i]==1]
+predicted_cmn = [model.most_similar(positive=[X_eval[i]])[0] for i, _ in enumerate(y_pred) if y_pred[i]==1 and y_eval[i]==1]
+
+print ("Predicted correctly")
+print ([v[0] for v in predicted_cmn])
+
+print ("Mispredicted")
+print ([v[0] for v in predicted_err])
+
+print ("Unexpected prediction")
+print ([v[0] for v in predicted_new])

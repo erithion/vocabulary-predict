@@ -112,6 +112,7 @@ def skewedCheck (target, threshold=0.25, do_exit=False):
         if do_exit:
             sys.exit('You asked not stop if the data is skewed')
 
+# returns the best estimator; unfitted
 def evaluateOnData(X, y, kernel=['rbf', 'linear'], gamma=[1000, 100, 10, 1, 0.1, 0.01, 0.001]):
     skewedCheck(y)
 
@@ -170,3 +171,4 @@ def evaluateOnData(X, y, kernel=['rbf', 'linear'], gamma=[1000, 100, 10, 1, 0.1,
     plt.show()    
     
     print ("In case the scores are bad consult https://scikit-learn.org/stable/tutorial/machine_learning_map/index.html")
+    return clone(clf2)
