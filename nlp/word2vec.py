@@ -16,6 +16,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline, Pipeline
 from sklearn.model_selection import train_test_split
 from stop_words import get_stop_words
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
 
 def obtainModel(path):
 #    file = basename(normpath(path))
@@ -107,3 +109,35 @@ print ([v[0] for v in predicted_err])
 
 print ("Unexpected prediction")
 print ([v[0] for v in predicted_new])
+
+# plot
+X_cmn = [v[0] for v in predicted_cmn]
+X_err = [v[0] for v in predicted_err]
+X_new = [v[0] for v in predicted_new]
+
+plt.figure(1)
+plt.xlabel('X1')
+plt.ylabel('X2')
+plt.title('Predicted/mispredicted/new word embeddings (via PCA)')
+
+if len(X_cmn):
+    Xr = PCA(n_components=2).fit_transform([model[v] for v in X_cmn])
+    plt.scatter(Xr[:, 0], Xr[:, 1], color='blue', label='Predicted')
+    for label, x, y in zip(X_cmn, Xr[:, 0], Xr[:, 1]):
+        plt.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points')
+
+if len(X_err):
+    Xr = PCA(n_components=2).fit_transform([model[v] for v in X_err])
+    plt.scatter(Xr[:, 0], Xr[:, 1], color='red', label='Mispredicted')
+    for label, x, y in zip(X_err, Xr[:, 0], Xr[:, 1]):
+        plt.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points')
+
+if len(X_new):
+    Xr = PCA(n_components=2).fit_transform([model[v] for v in X_new])
+    plt.scatter(Xr[:, 0], Xr[:, 1], color='green', label='New')
+    for label, x, y in zip(X_new, Xr[:, 0], Xr[:, 1]):
+        plt.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points')
+
+plt.legend(loc="best")
+plt.show()
+
