@@ -87,19 +87,39 @@ article = sampleSequentialLines(corpus_path, corpus_lines, lines_to_read=article
 for_sampling = [x for x in article if x not in get_stop_words('norwegian')]
 chosen_words = random.sample(for_sampling, int(article_words_count * 0.1))
 # Removing words not in model since they don't add any useful information to the nn
-X = [model[w] for w in article if w in model]
+X = [w for w in article if w in model]
 y = [1 if el in chosen_words else 0 for el in article if el in model]
 
 print ("Initial article size %i; Final article size %i" % (article_words_count, len(X)))
 
-clf = evaluateOnData(X, y, kernel=['rbf'], gamma=[1e7, 1e6, 1e5, 1e4, 1e3, 1e2, 10, 1, 0.1, 1e-2])
+clf = evaluateOnData([model[x] for x in X], y, kernel=['rbf'], gamma=[ 1e-3]) # better generalisation
+# clf = evaluateOnData([model[x] for x in X], y, kernel=['rbf'], gamma=[ 1e9]) better fit
 
-X_train, X_eval, y_train, y_eval = train_test_split(X, y, test_size=0.2,random_state=109) # 80% training
+Xw_train, Xw_eval, y_train, y_eval = train_test_split(X, y, test_size=0.1,random_state=109) # 80% training
+
+print ("Total words for training %i" % len(Xw_train))
+print ("Total words for evaluation %i" % len(Xw_eval))
+
+Xw_evaldiff_total = [v for v in Xw_eval if v not in Xw_train]
+Xw_evaldiff_positive = [v for i, v in enumerate(Xw_eval) if v not in Xw_train and y_eval[i]==1]
+print("New words in the evaluation set %2.2f%% (%i)" % (100*len(Xw_evaldiff_total)/len(Xw_eval), len(Xw_evaldiff_total)))
+print("Selected words among these new words %2.2f%% (%i)" % (100*len(Xw_evaldiff_positive)/len(Xw_evaldiff_total), len(Xw_evaldiff_positive)))
+
+X_train = [model[w] for w in Xw_train]
+X_eval = [model[w] for w in Xw_eval]
+
 p = make_pipeline(StandardScaler(), clf).fit(X_train, y_train)
 y_pred = p.predict(X_eval)
+train_wl = [model.most_similar(positive=[X_train[i]])[0] for i, _ in enumerate(y_train) if y_train[i]==1]
 predicted_new = [model.most_similar(positive=[X_eval[i]])[0] for i, _ in enumerate(y_pred) if y_pred[i]==1 and y_eval[i]==0]
 predicted_err = [model.most_similar(positive=[X_eval[i]])[0] for i, _ in enumerate(y_pred) if y_pred[i]==0 and y_eval[i]==1]
 predicted_cmn = [model.most_similar(positive=[X_eval[i]])[0] for i, _ in enumerate(y_pred) if y_pred[i]==1 and y_eval[i]==1]
+
+pred = [v[0] for v in predicted_cmn+predicted_new if v[0] not in Xw_train]
+print("Predicted words among the selected new words (%i)" % len(pred))
+
+print ("Trained")
+print ([v[0] for v in train_wl])
 
 print ("Predicted correctly")
 print ([v[0] for v in predicted_cmn])
@@ -111,6 +131,7 @@ print ("Unexpected prediction")
 print ([v[0] for v in predicted_new])
 
 # plot
+X_tra = [v[0] for v in train_wl]
 X_cmn = [v[0] for v in predicted_cmn]
 X_err = [v[0] for v in predicted_err]
 X_new = [v[0] for v in predicted_new]
@@ -119,6 +140,12 @@ plt.figure(1)
 plt.xlabel('X1')
 plt.ylabel('X2')
 plt.title('Predicted/mispredicted/new word embeddings (via PCA)')
+
+if len(X_tra):
+    Xr = PCA(n_components=2).fit_transform([model[v] for v in X_tra])
+    plt.scatter(Xr[:, 0], Xr[:, 1], color='yellow', label='Trained (Gaussian top)')
+#    for label, x, y in zip(X_tra, Xr[:, 0], Xr[:, 1]):
+#        plt.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points')
 
 if len(X_cmn):
     Xr = PCA(n_components=2).fit_transform([model[v] for v in X_cmn])
