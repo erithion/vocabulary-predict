@@ -93,7 +93,7 @@ y = [1 if el in chosen_words else 0 for el in article if el in model]
 print ("Initial article size %i; Preprocessed article size %i" % (article_words_count, len(X)))
 
 clf = evaluateOnData([model[x] for x in X], y, kernel=['rbf'], gamma=[ 1e-2]) # better generalisation
-# clf = evaluateOnData([model[x] for x in X], y, kernel=['rbf'], gamma=[ 1e9]) # better fit
+#clf = evaluateOnData([model[x] for x in X], y, kernel=['rbf'], gamma=[ 1e9]) # better fit
 
 Xw_train, Xw_eval, y_train, y_eval = train_test_split(X, y, test_size=0.1,random_state=109) # 80% training
 

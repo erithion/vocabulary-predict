@@ -135,7 +135,7 @@ def evaluateOnData(X, y, kernel=['rbf', 'linear'], gamma=[1000, 100, 10, 1, 0.1,
                 },
               ]
               
-    score = 'f1_micro'
+    score = 'recall_micro'
     print("# Tuning hyper-parameters for %s" % score)
     print()
 
