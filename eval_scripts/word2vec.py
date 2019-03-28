@@ -90,20 +90,22 @@ chosen_words = random.sample(for_sampling, int(article_words_count * 0.1))
 X = [w for w in article if w in model]
 y = [1 if el in chosen_words else 0 for el in article if el in model]
 
-print ("Initial article size %i; Final article size %i" % (article_words_count, len(X)))
+print ("Initial article size %i; Preprocessed article size %i" % (article_words_count, len(X)))
 
-clf = evaluateOnData([model[x] for x in X], y, kernel=['rbf'], gamma=[ 1e-3]) # better generalisation
-# clf = evaluateOnData([model[x] for x in X], y, kernel=['rbf'], gamma=[ 1e9]) better fit
+clf = evaluateOnData([model[x] for x in X], y, kernel=['rbf'], gamma=[ 1e-2]) # better generalisation
+# clf = evaluateOnData([model[x] for x in X], y, kernel=['rbf'], gamma=[ 1e9]) # better fit
 
 Xw_train, Xw_eval, y_train, y_eval = train_test_split(X, y, test_size=0.1,random_state=109) # 80% training
 
-print ("Total words for training %i" % len(Xw_train))
-print ("Total words for evaluation %i" % len(Xw_eval))
+count_eval = len(Xw_eval)
+count_train = len(Xw_train)
+print ("Evaluation vs. training word number: %i / %i" % (count_eval, count_train))
 
-Xw_evaldiff_total = [v for v in Xw_eval if v not in Xw_train]
-Xw_evaldiff_positive = [v for i, v in enumerate(Xw_eval) if v not in Xw_train and y_eval[i]==1]
-print("New words in the evaluation set %2.2f%% (%i)" % (100*len(Xw_evaldiff_total)/len(Xw_eval), len(Xw_evaldiff_total)))
-print("Selected words among these new words %2.2f%% (%i)" % (100*len(Xw_evaldiff_positive)/len(Xw_evaldiff_total), len(Xw_evaldiff_positive)))
+count_total_new = len([1 for v in Xw_eval if v not in Xw_train])
+count_test_new = len([1 for i, v in enumerate(Xw_eval) if v not in Xw_train and y_eval[i]==1])
+count_test_total = len([1 for i, v in enumerate(Xw_eval) if y_eval[i]==1])
+print("New eval words vs. total eval words: %i / %i (%2.2f%%)" % (count_total_new, count_eval, 100*count_total_new/count_eval))
+print("1-new eval words vs. 1-total eval words: %i / %i (%2.2f%%)" % (count_test_new, count_test_total, 100*count_test_new/count_test_total))
 
 X_train = [model[w] for w in Xw_train]
 X_eval = [model[w] for w in Xw_eval]
@@ -111,12 +113,18 @@ X_eval = [model[w] for w in Xw_eval]
 p = make_pipeline(StandardScaler(), clf).fit(X_train, y_train)
 y_pred = p.predict(X_eval)
 train_wl = [model.most_similar(positive=[X_train[i]])[0] for i, _ in enumerate(y_train) if y_train[i]==1]
-predicted_new = [model.most_similar(positive=[X_eval[i]])[0] for i, _ in enumerate(y_pred) if y_pred[i]==1 and y_eval[i]==0]
+predicted_unexp = [model.most_similar(positive=[X_eval[i]])[0] for i, _ in enumerate(y_pred) if y_pred[i]==1 and y_eval[i]==0]
 predicted_err = [model.most_similar(positive=[X_eval[i]])[0] for i, _ in enumerate(y_pred) if y_pred[i]==0 and y_eval[i]==1]
 predicted_cmn = [model.most_similar(positive=[X_eval[i]])[0] for i, _ in enumerate(y_pred) if y_pred[i]==1 and y_eval[i]==1]
 
-pred = [v[0] for v in predicted_cmn+predicted_new if v[0] not in Xw_train]
-print("Predicted words among the selected new words (%i)" % len(pred))
+print('')
+print ("Evaluation ...")
+print('')
+count_predict_cmn = len(predicted_cmn)
+print("Predicted vs. planned: %i / %i (%2.2f%%)" % (count_predict_cmn, count_test_total, 100*count_predict_cmn/count_test_total))
+count_predict_new = len([1 for v in predicted_cmn if v[0] not in Xw_train])
+print("Predicted vs. planned (new words only): %i / %i (%2.2f%%)" % (count_predict_new, count_test_new, float('NaN') if count_predict_new == 0 else  100*count_predict_new/count_test_new))
+print("   + %i words by virtue of generalisation" % len(predicted_unexp))
 
 print ("Trained")
 print ([v[0] for v in train_wl])
@@ -127,16 +135,16 @@ print ([v[0] for v in predicted_cmn])
 print ("Mispredicted")
 print ([v[0] for v in predicted_err])
 
-print ("Unexpected prediction")
-print ([v[0] for v in predicted_new])
+print ("New prediction (based on generalisation)")
+print ([v[0] for v in predicted_unexp])
 
 # plot
 X_tra = [v[0] for v in train_wl]
 X_cmn = [v[0] for v in predicted_cmn]
 X_err = [v[0] for v in predicted_err]
-X_new = [v[0] for v in predicted_new]
+X_new = [v[0] for v in predicted_unexp]
 
-plt.figure(1)
+plt.figure()
 plt.xlabel('X1')
 plt.ylabel('X2')
 plt.title('Predicted/mispredicted/new word embeddings (via PCA)')

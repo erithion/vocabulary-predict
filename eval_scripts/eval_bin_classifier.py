@@ -158,7 +158,7 @@ def evaluateOnData(X, y, kernel=['rbf', 'linear'], gamma=[1000, 100, 10, 1, 0.1,
                 % (mean, std * 2, params))
         print()
     
-    print("Evaluaion (test-set)")
+    print("Evaluation (test-set)")
     y_true, y_pred = y_eval, clf.predict(X_eval)
     print(classification_report(y_true, y_pred))
     print()
@@ -168,7 +168,6 @@ def evaluateOnData(X, y, kernel=['rbf', 'linear'], gamma=[1000, 100, 10, 1, 0.1,
     pipe2 = make_pipeline(StandardScaler(), clf2)
     cv = ShuffleSplit(n_splits=10, test_size=0.2, random_state=0)
     plot_learning_curve(pipe2, "Learning Curve", X_train, y_train, (0.7, 1.01), cv=cv, n_jobs=-1)
-    plt.show()    
     
     print ("In case the scores are bad consult https://scikit-learn.org/stable/tutorial/machine_learning_map/index.html")
     return clone(clf2)
