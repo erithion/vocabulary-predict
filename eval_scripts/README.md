@@ -9,7 +9,7 @@
     * gamma = 0.01; 
 
 * Words for tests were sampled uniformly
-* Bigger values of gamma give better learning curve, but worse prediction of new words (generalisation) which was the key goal
+* Bigger values of gamma give better learning curve, but worse prediction of neighboring words (generalisation) which was the key goal
     
     * Example
 ```
