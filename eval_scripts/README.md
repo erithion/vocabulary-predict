@@ -29,6 +29,7 @@
         Predicted vs. planned (new words only): 2 / 28 (7.14%)              
             + 20 words by virtue of generalisation                           
    ```         
-    ![Learning curve](https://github.com/erithion/resource/blob/master/vocabulary-predictor-pic/learning_curve.png "Learning curve")
-    ![PCA](https://github.com/erithion/resource/blob/master/vocabulary-predictor-pic/PCA.PNG "PCA")
+    
+![Learning curve](https://github.com/erithion/resource/blob/master/vocabulary-predictor-pic/learning_curve.PNG "Learning curve")
+![PCA](https://github.com/erithion/resource/blob/master/vocabulary-predictor-pic/PCA.PNG "PCA")
             
