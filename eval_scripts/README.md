@@ -30,5 +30,5 @@
             + 20 words by virtue of generalisation                           
    ```         
     ![Learning curve](https://github.com/erithion/resource/blob/master/vocabulary-predictor-pic/learning_curve.png "Learning curve")
-    ![PCA view](https://github.com/erithion/resource/blob/master/vocabulary-predictor-pic/pca.png "PCA view")
+    ![PCA](https://github.com/erithion/resource/blob/master/vocabulary-predictor-pic/PCA.PNG "PCA")
             
