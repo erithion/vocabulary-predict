@@ -12,7 +12,7 @@
 * Bigger values of gamma give better learning curve, but worse prediction of new words (generalisation) which was the key goal
     
     * Example
-
+```
         Evaluation (test-set)                                     
                 precision    recall  f1-score   support     
                                                           
@@ -28,7 +28,7 @@
         Predicted vs. planned: 146 / 172 (84.88%)                           
         Predicted vs. planned (new words only): 2 / 28 (7.14%)              
             + 20 words by virtue of generalisation                           
-            
+   ```         
     ![Learning curve](https://github.com/erithion/resource/blob/master/vocabulary-predictor-pic/learning_curve.png "Learning curve")
     ![PCA view](https://github.com/erithion/resource/blob/master/vocabulary-predictor-pic/pca.png "PCA view")
             
