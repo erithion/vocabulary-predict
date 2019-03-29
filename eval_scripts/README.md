@@ -67,5 +67,5 @@
 
 ## Summary
 Bigger values of gamma produce better learning curve, but worse prediction of neighboring words (generalisation) which was the ultimate goal. Thus chosen hyper-parameters of SVM gaussian krnl:
-* C = 1
+* C = 10
 * gamma = 1e-2
