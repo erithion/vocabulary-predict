@@ -75,8 +75,8 @@ def sampleSequentialLines(file_path, total_lines, lines_to_read=10):
         return res
 
         
-model = obtainModel('../../llearn/data/104/model.txt')
-corpus_path, corpus_lines = preprocessCorpus('../../llearn/data/norsk_aviskorpus/1/19981013-20010307/alle-981013-010307.utf8')
+model = obtainModel('../../../llearn/data/104/model.txt')
+corpus_path, corpus_lines = preprocessCorpus('../../../llearn/data/norsk_aviskorpus/1/19981013-20010307/alle-981013-010307.utf8')
 
 # Some predefined functions that show content related information for given words
 #print(model.most_similar(positive=['kvinne', 'konge'], negative=['mann']))
