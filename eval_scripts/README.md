@@ -31,7 +31,7 @@
    <img src="https://github.com/erithion/resource/blob/master/vocabulary-predictor-pic/learning_curve_gamma_small.PNG" width="640" height="480">
 </details>
 <details>
- <summary>Learning curve. Click to see the image</summary>
+ <summary>Word embeddings approximation with PCA. Click to see the image</summary>
 
    <img src="https://github.com/erithion/resource/blob/master/vocabulary-predictor-pic/PCA_gamma_small.PNG" width="640" height="480">
 </details>
@@ -60,7 +60,7 @@
    <img src="https://github.com/erithion/resource/blob/master/vocabulary-predictor-pic/learning_curve_gamma_big.PNG" width="640" height="480">
 </details>
 <details>
- <summary>Learning curve. Click to see the image</summary>
+ <summary>Word embeddings approximation with PCA. Click to see the image</summary>
 
    <img src="https://github.com/erithion/resource/blob/master/vocabulary-predictor-pic/PCA_gamma_big.PNG" width="640" height="480">
 </details>
