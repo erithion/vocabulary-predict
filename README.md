@@ -1,2 +1,2 @@
 # vocabulary_predictor
-![Model evaluation](eval_scripts/README.md)
+<a href=https://github.com/erithion/vocabulary-predict/blob/master/eval_scripts/README.md>Model evaluation</a>
